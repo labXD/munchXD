@@ -1,30 +1,32 @@
-## Getting Started
+# Web application
 
-First, run the development server:
+## Pre-requisites
 
-```bash
-yarn dev
-```
+- install planetscale cli
+  - `brew install planetscale/tap/pscale`
+- install mysql client
+  - `brew install mysql-client`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Get started
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+- run local server
+  - `pnpm run db`
+- run local web server
+  - `pnpm run dev`
+- to view db, run `pnpm run view:db`
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## planetscale
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+- login `pscale auth login`
+- run db locally `pnpm run db`
+- create a branch `pscale branch create food-alert-api <BRANCH_NAME>`
+- sync prisma.schema with PlanetScale schema via `pnpm run sync:schema`
+- To verify that the database is in sync with the prisma schema, run mysql playground via `pscale shell food-alert-api dev`
+  - Then run `describe <MODAL_NAME>;`
+  - run `exit` to leave
+- To promote a branch to production once in sync, run `pscale branch promote food-alert-api main`
 
-## Learn More
+## reference
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn/foundations/about-nextjs) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_source=github.com&utm_medium=referral&utm_campaign=turborepo-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- [PlanetScale Docs](https://planetscale.com/blog/how-to-setup-next-js-with-prisma-and-planetscale)
+- [Youtube Video](https://www.youtube.com/watch?v=JtqdAn_wYzY)
