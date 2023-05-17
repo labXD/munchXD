@@ -30,3 +30,14 @@
 
 - [PlanetScale Docs](https://planetscale.com/blog/how-to-setup-next-js-with-prisma-and-planetscale)
 - [Youtube Video](https://www.youtube.com/watch?v=JtqdAn_wYzY)
+
+## Maps
+
+- [google maps api](https://mapsplatform.google.com/)
+
+## classnames
+
+- element position
+- element behavior
+- element styles
+- children styles
