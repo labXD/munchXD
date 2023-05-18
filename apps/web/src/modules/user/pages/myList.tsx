@@ -1,12 +1,10 @@
 import { PageLayout } from '@/meta'
+import { RestaurantStore } from '@prisma/client'
 import { useEffect, useState } from 'react'
-interface RestProps {
-  restaurantName: string
-  note?: string
-}
+
 export function MyList() {
-  const [myResponse, setMyResponse] = useState<{ data: RestProps[] }>(
-    {} as { data: RestProps[] }
+  const [myResponse, setMyResponse] = useState<{ data: RestaurantStore[] }>(
+    {} as { data: RestaurantStore[] }
   )
 
   const readDb = async () => {
@@ -33,14 +31,30 @@ export function MyList() {
   return (
     <PageLayout title="My List">
       <main>
-        <ul>
-          {myResponse.data?.map((item, index) => (
-            <li key={index}>
-              <h2>{item.restaurantName}</h2>
-              <p>{item.note}</p>
-            </li>
-          ))}
-        </ul>
+        <table>
+          <thead>
+            {Object.keys(myResponse.data?.[0] ?? {}).map((key, index) => (
+              <th
+                className="text-xs border bg-gray-50 font-normal px-2 py-1"
+                key={index}
+              >
+                <span>{key}</span>
+              </th>
+            ))}
+          </thead>
+          <tbody className="text-xs">
+            {myResponse.data?.map((item, index) => (
+              <tr key={index}>
+                <td className="px-2 py-1">
+                  <span>{item.name}</span>
+                </td>
+                <td className="px-2 py-1">
+                  <span>{item.formatted_address}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </main>
     </PageLayout>
   )

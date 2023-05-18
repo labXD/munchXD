@@ -3,16 +3,19 @@ import { KeyboardEvent, useState } from 'react'
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
+  getDetails,
 } from 'use-places-autocomplete'
 import useOnclickOutside from 'react-cool-onclickoutside'
 import clsx from 'clsx'
+import { RestaurantStore } from '@prisma/client'
+import { PostPlace, RestaurantStoreWithoutId } from './PostPlace'
 
 interface PlacesAutocompleteProps {
   setSelected: React.Dispatch<React.SetStateAction<any>>
 }
 
 type Suggestion = google.maps.places.AutocompletePrediction
-
+type PlaceResults = google.maps.places.PlaceResult
 export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
   const {
     ready,
@@ -41,6 +44,49 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
     })
   }
 
+  function placeDetail({ place_id }: Suggestion) {
+    const parameter = {
+      placeId: place_id,
+      fields: [
+        'name',
+        'price_level',
+        'formatted_address',
+        'formatted_phone_number',
+        'website',
+        'rating',
+        'user_ratings_total',
+      ],
+    }
+
+    getDetails(parameter)
+      .then((details) => {
+        console.log(details)
+        const {
+          name,
+          formatted_address,
+          formatted_phone_number,
+          website,
+          price_level,
+          rating,
+          user_ratings_total,
+        } = details as PlaceResults
+        const mapDetails: RestaurantStoreWithoutId = {
+          name: name ?? '',
+          formatted_address: formatted_address ?? '',
+          formatted_phone_number: formatted_phone_number ?? null,
+          website: website ?? null,
+          price_level: price_level ?? null,
+          rating: rating ?? null,
+          user_ratings_total: user_ratings_total ?? null,
+        }
+
+        PostPlace(mapDetails)
+      })
+      .catch((error) => {
+        console.log('Error: ', error)
+      })
+  }
+
   const dismissSuggestions = () => {
     setCurrIndex(null)
     clearSuggestions()
@@ -58,13 +104,12 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
     cachedVal = e.target.value
   }
 
-  const handleSelect =
-    ({ description }: Suggestion) =>
-    () => {
-      setValue(description, false)
-      setLatLong(description)
-      dismissSuggestions()
-    }
+  const handleSelect = (props: Suggestion) => () => {
+    setValue(props.description, false)
+    setLatLong(props.description)
+    placeDetail(props)
+    dismissSuggestions()
+  }
 
   const handleEnter = (idx: number) => () => {
     setCurrIndex(idx)
@@ -108,7 +153,6 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
   }
 
   const renderSuggestions = (): JSX.Element => {
-    console.log('data', data)
     const suggestions = data.map((suggestion: Suggestion, idx: number) => {
       const {
         place_id,

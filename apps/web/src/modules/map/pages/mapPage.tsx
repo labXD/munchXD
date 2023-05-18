@@ -1,9 +1,4 @@
-import {
-  Autocomplete,
-  GoogleMap,
-  Marker,
-  useLoadScript,
-} from '@react-google-maps/api'
+import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api'
 import { useMemo, useState } from 'react'
 import { PlacesAutocomplete } from '../components'
 
