@@ -38,12 +38,19 @@ datasource db {
 //   vicinity?: string;
 //   website?: string;
 model RestaurantStore {
-id      Int   @default(autoincrement()) @id
+id Int   @default(autoincrement()) @id
+place_id String
 name    String
+business_status String?
 formatted_address String
-formatted_phone_number String?
-website String?
 price_level Int?
+website String?
 rating  Float?
 user_ratings_total Int?
+google_map_url String?
+lat Float?
+lng Float?
+visited Boolean @default(false)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }
