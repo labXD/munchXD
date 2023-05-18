@@ -7,7 +7,6 @@ import usePlacesAutocomplete, {
 } from 'use-places-autocomplete'
 import useOnclickOutside from 'react-cool-onclickoutside'
 import clsx from 'clsx'
-import { RestaurantStore } from '@prisma/client'
 import { PostPlace, RestaurantStoreWithoutId } from './PostPlace'
 
 interface PlacesAutocompleteProps {
@@ -16,6 +15,8 @@ interface PlacesAutocompleteProps {
 
 type Suggestion = google.maps.places.AutocompletePrediction
 type PlaceResults = google.maps.places.PlaceResult
+type PlaceGeometry = google.maps.places.PlaceGeometry
+type PlaceLatLng = google.maps.LatLng
 export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
   const {
     ready,
@@ -49,12 +50,13 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
       placeId: place_id,
       fields: [
         'name',
-        'price_level',
+        'business_status',
         'formatted_address',
-        'formatted_phone_number',
+        'price_level',
         'website',
         'rating',
         'user_ratings_total',
+        'geometry',
       ],
     }
 
@@ -63,23 +65,32 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
         console.log(details)
         const {
           name,
+          business_status,
           formatted_address,
-          formatted_phone_number,
-          website,
           price_level,
+          website,
           rating,
           user_ratings_total,
+          geometry,
+          url,
         } = details as PlaceResults
+        console.log('deee', details)
+        const { location } = geometry as PlaceGeometry
+        console.log(place_id, location?.lat())
         const mapDetails: RestaurantStoreWithoutId = {
+          place_id: place_id ?? '',
           name: name ?? '',
+          business_status: business_status ?? '',
           formatted_address: formatted_address ?? '',
-          formatted_phone_number: formatted_phone_number ?? null,
-          website: website ?? null,
           price_level: price_level ?? null,
+          website: website ?? null,
+          google_map_url: url ?? null,
           rating: rating ?? null,
           user_ratings_total: user_ratings_total ?? null,
+          lat: location?.lat() ?? null,
+          lng: location?.lng() ?? null,
         }
-
+        console.log('mapDetails', mapDetails)
         PostPlace(mapDetails)
       })
       .catch((error) => {
@@ -187,50 +198,46 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
   return (
     <div
       ref={ref}
-      className={clsx('fixed top-2 left-2 z-10', 'w-full max-w-[400px]')}
+      className={clsx('relative', 'h-12 flex rounded', 'bg-white', {
+        'rounded-b-none': hasSuggestions,
+      })}
+      role="combobox"
+      aria-owns="ex-list-box"
+      aria-haspopup="listbox"
+      aria-expanded={hasSuggestions}
     >
-      <div
-        className={clsx('relative', 'h-12 flex rounded', 'bg-white', {
-          'rounded-b-none': hasSuggestions,
-        })}
-        role="combobox"
-        aria-owns="ex-list-box"
-        aria-haspopup="listbox"
-        aria-expanded={hasSuggestions}
-      >
-        <input
-          className={clsx(
-            'w-full pl-4 pr-8 outline-none shadow',
-            'bg-transparent'
-          )}
-          value={value}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          disabled={!ready}
-          placeholder="Search restaurants..."
-          type="text"
-          aria-autocomplete="list"
-          aria-controls="ex-list-box"
-          aria-activedescendant={
-            currIndex !== null ? `ex-list-item-${currIndex}` : undefined
-          }
-        />
-        {/** clear input button */}
-        {value && (
-          <button
-            className="absolute right-0 inset-y-0 w-8 text-center"
-            onClick={() => clearInput()}
-          >
-            <span className="material-symbols-rounded fill text-xl leading-none text-gray-500">
-              cancel
-            </span>
-          </button>
+      <input
+        className={clsx(
+          'w-full pl-4 pr-8 outline-none shadow',
+          'bg-transparent'
         )}
-      </div>
+        value={value}
+        onChange={handleInput}
+        onKeyDown={handleKeyDown}
+        disabled={!ready}
+        placeholder="Search restaurants..."
+        type="text"
+        aria-autocomplete="list"
+        aria-controls="ex-list-box"
+        aria-activedescendant={
+          currIndex !== null ? `ex-list-item-${currIndex}` : undefined
+        }
+      />
+      {/** clear input button */}
+      {value && (
+        <button
+          className="absolute right-0 inset-y-0 w-8 text-center"
+          onClick={() => clearInput()}
+        >
+          <span className="material-symbols-rounded fill text-xl leading-none text-gray-500">
+            cancel
+          </span>
+        </button>
+      )}
       {hasSuggestions && (
         <div
           className={clsx(
-            'absolute bottom-0 translate-y-full w-full',
+            'z-10 shadow-lg absolute bottom-0 translate-y-full w-full',
             'max-h-72 overflow-y-auto',
             'bg-white border-t border-gray-200 rounded-b'
           )}

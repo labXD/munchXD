@@ -1,6 +1,13 @@
 import { RestaurantStore } from '@prisma/client'
 
-export type RestaurantStoreWithoutId = Omit<RestaurantStore, 'id'>
+// Omit 'id', 'createdAt', and 'updatedAt' from the type
+export type OmitIdCreatedAtUpdatedAt<T> = Omit<
+  T,
+  'id' | 'createdAt' | 'updatedAt'
+>
+
+// Usage example: omit 'id', 'createdAt', and 'updatedAt' from RestaurantStore
+export type RestaurantStoreWithoutId = OmitIdCreatedAtUpdatedAt<RestaurantStore>
 
 export async function PostPlace(props: RestaurantStoreWithoutId) {
   const body: RestaurantStoreWithoutId = { ...props }
@@ -13,7 +20,7 @@ export async function PostPlace(props: RestaurantStoreWithoutId) {
     if (response.status !== 200) {
       console.log('something went wrong')
     } else {
-      console.log('form submitted successfully !!!')
+      console.log('submitted')
     }
   } catch (error) {
     console.log('there was an error submitting', error)
