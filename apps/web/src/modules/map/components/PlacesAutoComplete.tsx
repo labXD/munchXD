@@ -7,7 +7,7 @@ import usePlacesAutocomplete, {
 } from 'use-places-autocomplete'
 import useOnclickOutside from 'react-cool-onclickoutside'
 import clsx from 'clsx'
-import { PostPlace, RestaurantStoreWithoutId } from './PostPlace'
+import { RestaurantStoreWithoutId, createPlace } from '~/modules/api/routes'
 
 interface PlacesAutocompleteProps {
   setSelected: React.Dispatch<React.SetStateAction<any>>
@@ -91,8 +91,7 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
           lng: location?.lng() ?? null,
           visited: false,
         }
-        console.log('mapDetails', mapDetails)
-        PostPlace(mapDetails)
+        createPlace(mapDetails)
       })
       .catch((error) => {
         console.log('Error: ', error)

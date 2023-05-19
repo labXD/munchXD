@@ -1,10 +1,8 @@
 import { PrismaClient, RestaurantStore } from '@prisma/client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-// define and instantiate our Prisma client.
 const prisma = new PrismaClient()
 
-// specify function when POST or GET is called
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -12,7 +10,7 @@ export default async function handler(
   if (req.method === 'POST') {
     return await createRestaurant(req, res)
   } else if (req.method === 'GET') {
-    return await getRestaurants(req, res)
+    return await readRestaurants(res)
   } else {
     return res
       .status(405)
@@ -20,7 +18,7 @@ export default async function handler(
   }
 }
 
-async function getRestaurants(req: NextApiRequest, res: NextApiResponse) {
+async function readRestaurants(res: NextApiResponse) {
   try {
     const restaurants: RestaurantStore[] =
       await prisma.restaurantStore.findMany()
