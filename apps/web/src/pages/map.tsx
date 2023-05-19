@@ -1,1 +1,1 @@
-export { MapPage as default } from '@/map'
+export { MapEdgePage as default } from '@/map'
