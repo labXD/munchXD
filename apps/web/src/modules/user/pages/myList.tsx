@@ -4,31 +4,63 @@ import { ReadDbProps, readDb } from '@/api/routes'
 import clsx from 'clsx'
 import { calcTimeElapsed } from '../utils'
 import Link from 'next/link'
-import { PlacesAutocomplete } from '~/modules/map/components'
+import {
+  AutocompleteComponent,
+  PlaceResultProps,
+  PlacesAutocomplete,
+  PostPlace,
+  RestaurantStoreWithoutId,
+} from '~/modules/map/components'
 import { useLoadScript } from '@react-google-maps/api'
 
 export function MyList() {
   const [myResponse, setMyResponse] = useState<ReadDbProps>({
     data: [],
   })
+  const [place, setPlace] = useState<PlaceResultProps>()
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '',
     libraries: ['places'],
   })
 
-  const [selected, setSelected] = useState()
   useEffect(() => {
     readDb((data) => {
       setMyResponse({ data })
     })
   }, [])
 
+  useEffect(() => {
+    if (place !== undefined) {
+      const mapDetails: RestaurantStoreWithoutId = {
+        place_id: place.place_id ?? '',
+        name: place.name ?? '',
+        business_status: place.business_status ?? '',
+        formatted_address: place.formatted_address ?? '',
+        price_level: place.price_level ?? null,
+        website: place.website ?? null,
+        google_map_url: place.url ?? null,
+        rating: place.rating ?? null,
+        user_ratings_total: place.user_ratings_total ?? null,
+        lat: place.geometry?.location?.lat() ?? null,
+        lng: place.geometry?.location?.lng() ?? null,
+        visited: false,
+      }
+      PostPlace(mapDetails)
+    }
+  }, [place])
+
   if (!isLoaded) return <div>loading...</div>
 
+  function handlePlace(res: PlaceResultProps) {
+    if (res !== undefined) {
+      setPlace(res)
+    }
+  }
   return (
     <PageLayout title="My List" className="bg-gray-300 pt-4">
       <div className="z-10 sticky top-0 px-4">
-        <PlacesAutocomplete setSelected={setSelected} />
+        <AutocompleteComponent getPlace={(place) => handlePlace(place)} />
       </div>
       <header className="pt-4 px-8 pb-2">
         <div className="pt-4 flex items-center justify-between">

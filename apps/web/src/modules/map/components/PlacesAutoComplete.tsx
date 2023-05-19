@@ -89,6 +89,7 @@ export function PlacesAutocomplete({ setSelected }: PlacesAutocompleteProps) {
           user_ratings_total: user_ratings_total ?? null,
           lat: location?.lat() ?? null,
           lng: location?.lng() ?? null,
+          visited: false,
         }
         console.log('mapDetails', mapDetails)
         PostPlace(mapDetails)

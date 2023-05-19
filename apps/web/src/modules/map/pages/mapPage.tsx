@@ -20,6 +20,7 @@ export function MapPage() {
       position: google.maps.ControlPosition.BOTTOM_LEFT,
     },
   }
+
   return (
     <div className="h-screen relative">
       <div

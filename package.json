@@ -49,7 +49,7 @@
       "prettier --write"
     ]
   },
-  "packageManager": "pnpm@8.3.1",
+  "packageManager": "pnpm@8.5.1",
   "prettier": "prettier-config-local",
   "repository": {
     "type": "git",
