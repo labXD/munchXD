@@ -13,12 +13,19 @@
     "sync:schema": "prisma db push"
   },
   "dependencies": {
+    "@internationalized/date": "^3.2.0",
     "@prisma/client": "4.13.0",
     "@react-google-maps/api": "^2.18.1",
+    "@tanstack/match-sorter-utils": "^8.8.4",
+    "@tanstack/react-table": "^8.9.1",
+    "ag-grid-community": "^29.3.5",
+    "ag-grid-react": "^29.3.5",
     "next": "13.4.1",
     "react": "^18.2.0",
+    "react-aria": "^3.25.0",
     "react-cool-onclickoutside": "^1.7.0",
     "react-dom": "^18.2.0",
+    "react-stately": "^3.23.0",
     "ui-local": "workspace:*",
     "use-places-autocomplete": "^4.0.0"
   },

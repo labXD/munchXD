@@ -1,1 +1,1 @@
-export { MyList as default } from '@/user'
+export { DataPage as default } from '@/user'

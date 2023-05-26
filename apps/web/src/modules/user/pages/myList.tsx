@@ -1,11 +1,6 @@
 import { PageLayout } from '@/meta'
 import { useEffect, useState } from 'react'
-import {
-  ReadDbProps,
-  RestaurantStoreWithoutId,
-  createPlace,
-  readDb,
-} from '@/api/routes'
+import { ReadDbProps, readDb } from '@/api/routes'
 import clsx from 'clsx'
 import { calcTimeElapsed } from '../utils'
 import Link from 'next/link'
@@ -25,26 +20,6 @@ export function MyList() {
     })
   }, [])
 
-  useEffect(() => {
-    if (place !== undefined) {
-      const mapDetails: RestaurantStoreWithoutId = {
-        place_id: place.place_id ?? '',
-        name: place.name ?? '',
-        business_status: place.business_status ?? '',
-        formatted_address: place.formatted_address ?? '',
-        price_level: place.price_level ?? null,
-        website: place.website ?? null,
-        google_map_url: place.url ?? null,
-        rating: place.rating ?? null,
-        user_ratings_total: place.user_ratings_total ?? null,
-        lat: place.geometry?.location?.lat() ?? null,
-        lng: place.geometry?.location?.lng() ?? null,
-        visited: false,
-      }
-      createPlace(mapDetails)
-    }
-  }, [place])
-
   function handlePlace(res: PlaceResultProps) {
     if (res !== undefined) {
       setPlace(res)
@@ -54,8 +29,8 @@ export function MyList() {
   const handleToggleVisited = async (index: number) => {
     const updatedData = [...myResponse.data]
     const restaurant = updatedData[index]
-    const { id, visited, createdAt, updatedAt, ...rest } = restaurant
-    const body = { id, visited: !restaurant.visited, ...rest }
+    const { id, createdAt, updatedAt, ...rest } = restaurant
+    const body = { id, ...rest }
     try {
       const response = await fetch(`/api/restaurant/${restaurant.id}`, {
         method: 'PUT',

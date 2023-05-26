@@ -1,12 +1,12 @@
-import { RestaurantStore } from '@prisma/client'
+import { Reminder, Restaurant, Visit } from '@prisma/client'
 
 export interface ReadDbProps {
-  data: RestaurantStore[]
+  data: Restaurant[]
 }
 
-export const readDb = async (getData: (data: RestaurantStore[]) => void) => {
+export const readDb = async (getData: (data: Restaurant[]) => void) => {
   try {
-    const response = await fetch('/api/restaurant', {
+    const response = await fetch('/api/restaurants', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -23,19 +23,16 @@ export const readDb = async (getData: (data: RestaurantStore[]) => void) => {
   }
 }
 
-// Omit 'id', 'createdAt', and 'updatedAt' from the type
-export type OmitIdCreatedAtUpdatedAt<T> = Omit<
-  T,
-  'id' | 'createdAt' | 'updatedAt'
->
+type OmitIdCreatedAtUpdatedAt<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 
-// Usage example: omit 'id', 'createdAt', and 'updatedAt' from RestaurantStore
-export type RestaurantStoreWithoutId = OmitIdCreatedAtUpdatedAt<RestaurantStore>
+export type RestaurantOmits = OmitIdCreatedAtUpdatedAt<Restaurant>
+export type VisitOmits = OmitIdCreatedAtUpdatedAt<Visit>
+export type ReminderOmits = OmitIdCreatedAtUpdatedAt<Reminder>
 
-export const createPlace = async (props: RestaurantStoreWithoutId) => {
-  const body: RestaurantStoreWithoutId = { ...props }
+export const createPlace = async (props: RestaurantOmits) => {
+  const body: RestaurantOmits = { ...props }
   try {
-    const response = await fetch('/api/restaurant', {
+    const response = await fetch('/api/restaurants', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -44,6 +41,48 @@ export const createPlace = async (props: RestaurantStoreWithoutId) => {
       console.log('something went wrong')
     } else {
       console.log('submitted')
+    }
+  } catch (error) {
+    console.log('there was an error submitting', error)
+  }
+}
+
+export const createVisit = async (props: VisitOmits) => {
+  const body: VisitOmits = { ...props }
+  try {
+    const response = await fetch(
+      `/api/restaurants/${body.restaurantId}/visits`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }
+    )
+    if (response.status !== 200) {
+      console.log('something went wrong')
+    } else {
+      console.log('submitted visit')
+    }
+  } catch (error) {
+    console.log('there was an error submitting', error)
+  }
+}
+
+export const createReminder = async (props: ReminderOmits) => {
+  const body: ReminderOmits = { ...props }
+  try {
+    const response = await fetch(
+      `/api/restaurants/${body.restaurantId}/reminders`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }
+    )
+    if (response.status !== 200) {
+      console.log('something went wrong')
+    } else {
+      console.log('submitted reminder')
     }
   } catch (error) {
     console.log('there was an error submitting', error)
