@@ -1,4 +1,4 @@
-import { Reminder, Restaurant, Visit } from '@prisma/client'
+import { PrismaClient, Reminder, Restaurant, Visit } from '@prisma/client'
 
 export interface ReadDbProps {
   data: Restaurant[]
@@ -83,6 +83,54 @@ export const createReminder = async (props: ReminderOmits) => {
       console.log('something went wrong')
     } else {
       console.log('submitted reminder')
+    }
+  } catch (error) {
+    console.log('there was an error submitting', error)
+  }
+}
+
+export const deletePlace = async (id: number) => {
+  try {
+    const response = await fetch(`/api/restaurants/${id}`, {
+      method: 'DELETE',
+    })
+    if (response.ok) {
+      console.log('Record deleted successfully')
+    } else {
+      console.error('Error deleting record')
+    }
+  } catch (error) {
+    console.log('there was an error submitting', error)
+  }
+}
+
+export const deleteVisit = async (id: number, visitId: number) => {
+  try {
+    const response = await fetch(`/api/restaurants/${id}/visits/${visitId}`, {
+      method: 'DELETE',
+    })
+    if (response.ok) {
+      console.log('Record deleted successfully')
+    } else {
+      console.error('Error deleting record')
+    }
+  } catch (error) {
+    console.log('there was an error submitting', error)
+  }
+}
+
+export const deleteReminder = async (id: number, reminderId: number) => {
+  try {
+    const response = await fetch(
+      `/api/restaurants/${id}/reminders/${reminderId}`,
+      {
+        method: 'DELETE',
+      }
+    )
+    if (response.ok) {
+      console.log('Record deleted successfully')
+    } else {
+      console.error('Error deleting record')
     }
   } catch (error) {
     console.log('there was an error submitting', error)

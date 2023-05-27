@@ -1,8 +1,12 @@
-import { useDialog } from 'react-aria'
+import { AriaDialogProps, useDialog } from 'react-aria'
 import React from 'react'
 
-export function Dialog({ title, children, ...props }) {
-  let ref = React.useRef()
+interface DialogProps extends AriaDialogProps {
+  title: string
+  children: React.ReactNode
+}
+export function Dialog({ title, children, ...props }: DialogProps) {
+  let ref = React.useRef<HTMLDivElement>(null)
   let { dialogProps } = useDialog(props, ref)
 
   return (

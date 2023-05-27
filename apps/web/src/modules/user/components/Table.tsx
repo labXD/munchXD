@@ -5,30 +5,49 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Restaurant } from '@prisma/client'
+import { Reminder, Restaurant, Visit } from '@prisma/client'
 
 import { Column, getFilteredRowModel, Table } from '@tanstack/react-table'
 
-import { Visit } from './Visit'
 import clsx from 'clsx'
 import { calcTimeElapsed } from '../utils'
-import { Reminder } from './Reminder'
 import Link from 'next/link'
+import { deletePlace } from '~/modules/api/routes'
+import { VisitComponent } from './Visit'
+import { ReminderComponent } from './Reminder'
 
+interface DataProps extends Restaurant {
+  visits: Visit[]
+  reminders: Reminder[]
+}
 export function Table() {
-  const rerender = React.useReducer(() => ({}), {})[1]
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/restaurants', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await response.json()
+      setData(data.data)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
+  }
 
   const [data, setData] = React.useState([])
 
   React.useEffect(() => {
-    fetch('/api/restaurants', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((response) => response.json())
-      .then((data) => setData(data.data))
+    fetchData()
   }, [])
-  const columnHelper = createColumnHelper<Restaurant>()
+  const handleDelete = async (id: number) => {
+    try {
+      await deletePlace(id)
+      fetchData()
+    } catch (error) {
+      console.error('Error deleting place:', error)
+    }
+  }
+  const columnHelper = createColumnHelper<DataProps>()
 
   const columns = [
     columnHelper.accessor('name', {
@@ -53,21 +72,43 @@ export function Table() {
       header: () => <span>Added</span>,
       footer: (info) => info.column.id,
     }),
-    columnHelper.display({
-      id: 'visit',
-      header: () => <span>When did you visit?</span>,
-      cell: ({ row }) => {
-        const { id } = row.original
-        return <Visit id={id} />
+    columnHelper.accessor((row) => row.visits, {
+      id: 'visits',
+      cell: (info) => {
+        const data = info.getValue() as Visit[]
+        const { id } = info.row.original
+        return (
+          <VisitComponent id={id} data={data} refetch={() => fetchData()} />
+        )
       },
+      header: () => <span>Visited</span>,
+      footer: (info) => info.column.id,
+    }),
+    columnHelper.accessor((row) => row.reminders, {
+      id: 'reminders',
+      cell: (info) => {
+        const data = info.getValue() as Reminder[]
+        const { id } = info.row.original
+        return (
+          <ReminderComponent id={id} data={data} refetch={() => fetchData()} />
+        )
+      },
+      header: () => <span>Reminders</span>,
+      footer: (info) => info.column.id,
     }),
     columnHelper.display({
-      id: 'reminder',
-      header: () => <span>Remind me</span>,
-      enableColumnFilter: true,
+      id: 'delete',
       cell: ({ row }) => {
         const { id } = row.original
-        return <Reminder id={id} />
+        return (
+          <span>
+            <button onClick={() => handleDelete(id)}>
+              <span className="material-symbols-rounded text-red-700">
+                delete
+              </span>
+            </button>
+          </span>
+        )
       },
     }),
   ]
@@ -91,7 +132,7 @@ export function Table() {
         </Link>
         <button
           className="border-2 rounded border-purple-700 text-purple-700 p-2"
-          onClick={() => rerender()}
+          onClick={() => fetchData()}
         >
           Refresh
         </button>
@@ -152,7 +193,7 @@ export function Table() {
                 {row.getVisibleCells().map((cell) => {
                   return (
                     <td key={cell.id} className="border-t">
-                      <span className="flex px-2 py-[1px]">
+                      <span className="p-2 flex items-start">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

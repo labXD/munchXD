@@ -27,7 +27,7 @@ export function Popover(props: PopoverProps) {
 
   return (
     <Overlay portalContainer={document.body}>
-      <div {...underlayProps} className="fixed inset-0" />
+      <div {...underlayProps} className="fixed inset-0"></div>
       <div
         {...popoverProps}
         ref={ref}

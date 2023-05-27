@@ -31,12 +31,22 @@ async function getRestaurant(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function deleteRestaurant(req: NextApiRequest, res: NextApiResponse) {
-  const body = req.body
+  const id = req.query.id
   try {
-    const deleteRecord: Restaurant = await prisma.restaurant.delete({
-      where: { id: body.id },
+    await prisma.visit.deleteMany({
+      where: {
+        restaurantId: Number(id),
+      },
     })
-    return res.status(200).json({ data: deleteRecord, success: true })
+    await prisma.reminder.deleteMany({
+      where: {
+        restaurantId: Number(id),
+      },
+    })
+    await prisma.restaurant.delete({
+      where: { id: Number(id) },
+    })
+    res.status(200).json({ message: 'Record deleted successfully' })
   } catch (error) {
     console.error('Request error', error)
     res.status(500).json({ error: 'Error deleting restaurant', success: false })

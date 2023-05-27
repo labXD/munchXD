@@ -33,7 +33,12 @@ async function createRestaurant(req: NextApiRequest, res: NextApiResponse) {
 
 async function getRestaurants(res: NextApiResponse) {
   try {
-    const getRecords: Restaurant[] = await prisma.restaurant.findMany()
+    const getRecords: Restaurant[] = await prisma.restaurant.findMany({
+      include: {
+        visits: true,
+        reminders: true,
+      },
+    })
     return res.status(200).json({ data: getRecords, success: true })
   } catch (error) {
     console.error('Request error', error)

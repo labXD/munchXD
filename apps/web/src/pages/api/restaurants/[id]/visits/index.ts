@@ -7,12 +7,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { id } = req.query as { id: string }
-
   if (req.method === 'POST') {
     return await createVisit(req, res)
   } else if (req.method === 'GET') {
-    return await getVisits(res, id)
+    return await getVisits(req, res)
   } else {
     res.status(405).json({ message: 'Method not allowed', success: false })
   }
@@ -31,12 +29,12 @@ async function createVisit(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function getVisits(res: NextApiResponse, id: string) {
-  const numericId = parseInt(id, 10)
+async function getVisits(req: NextApiRequest, res: NextApiResponse) {
+  const id = req.query.id
 
   try {
     const getRecords: Visit[] = await prisma.visit.findMany({
-      where: { restaurantId: numericId },
+      where: { restaurantId: Number(id) },
     })
     return res.status(200).json({ data: getRecords, success: true })
   } catch (error) {
