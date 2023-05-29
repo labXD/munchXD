@@ -1,1 +1,1 @@
-export { DataPage as default } from '@/user'
+export { MobilePage as default } from '@/user'

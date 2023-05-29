@@ -3,6 +3,8 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
 } from '@tanstack/react-table'
 import { Reminder, Restaurant, Visit } from '@prisma/client'
@@ -21,6 +23,10 @@ interface DataProps extends Restaurant {
   reminders: Reminder[]
 }
 export function Table() {
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'name', desc: false },
+  ])
+
   const fetchData = async () => {
     try {
       const response = await fetch('/api/restaurants', {
@@ -60,6 +66,8 @@ export function Table() {
     }),
     columnHelper.accessor((row) => row.createdAt, {
       id: 'createdAt',
+      enableColumnFilter: false,
+      enableSorting: false,
       cell: (info) => {
         const date = new Date(info.getValue()) as Date
         const formattedDate = calcTimeElapsed(date)
@@ -74,6 +82,8 @@ export function Table() {
     }),
     columnHelper.accessor((row) => row.visits, {
       id: 'visits',
+      enableColumnFilter: false,
+      enableSorting: false,
       cell: (info) => {
         const data = info.getValue() as Visit[]
         const { id } = info.row.original
@@ -86,6 +96,9 @@ export function Table() {
     }),
     columnHelper.accessor((row) => row.reminders, {
       id: 'reminders',
+      enableColumnFilter: false,
+      enableSorting: false,
+
       cell: (info) => {
         const data = info.getValue() as Reminder[]
         const { id } = info.row.original
@@ -119,6 +132,12 @@ export function Table() {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     debugTable: true,
+
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
   })
 
   return (
@@ -130,12 +149,12 @@ export function Table() {
         >
           Add Restaurant
         </Link>
-        <button
+        <Link
+          href="/"
           className="border-2 rounded border-purple-700 text-purple-700 p-2"
-          onClick={() => fetchData()}
         >
-          Refresh
-        </button>
+          Table View
+        </Link>
       </div>
       <table className="w-full">
         <thead>
@@ -152,11 +171,40 @@ export function Table() {
                     key={header.id}
                     colSpan={header.colSpan}
                   >
-                    <span className={clsx('px-2 py-1')}>
+                    <span
+                      className={clsx('relative', {
+                        'cursor-pointer select-none':
+                          header.column.getCanSort(),
+                      })}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
                       )}
+                      {{
+                        asc: (
+                          <span
+                            className={clsx(
+                              'absolute -right-1 top-1/2 -translate-y-1/2 translate-x-full',
+                              'material-symbols-rounded text-sm leading-0 text-gray-500'
+                            )}
+                          >
+                            sort
+                          </span>
+                        ),
+                        desc: (
+                          <span
+                            className={clsx(
+                              'absolute -right-1 top-1/2 -translate-y-1/2 translate-x-full',
+                              'material-symbols-rounded text-sm leading-0 text-gray-500',
+                              '-scale-y-100'
+                            )}
+                          >
+                            sort
+                          </span>
+                        ),
+                      }[header.column.getIsSorted() as string] ?? null}
                     </span>
                   </th>
                 )

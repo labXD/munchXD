@@ -26,14 +26,17 @@ export function CalendarButton(props: AriaButtonProps<'button'>) {
   )
 }
 
-export function FieldButton(props: AriaButtonProps<'button'>) {
+export interface FieldButtonProps extends AriaButtonProps<'button'> {
+  className?: string
+}
+export function FieldButton(props: FieldButtonProps) {
   let ref = useRef<HTMLButtonElement>(null)
   let { buttonProps } = useButton(props, ref)
   return (
     <button
       {...buttonProps}
       ref={ref}
-      className={clsx('hover:text-purple-600')}
+      className={clsx(props.className, 'hover:text-purple-600')}
     >
       {props.children}
     </button>

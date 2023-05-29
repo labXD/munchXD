@@ -1,11 +1,16 @@
 import { useRef } from 'react'
 import { useCalendarState } from 'react-stately'
-import { useCalendar, useLocale } from 'react-aria'
+import {
+  AriaCalendarProps,
+  DateValue,
+  useCalendar,
+  useLocale,
+} from 'react-aria'
 import { createCalendar } from '@internationalized/date'
 import { CalendarButton } from './Button'
 import { CalendarGrid } from './CalendarGrid'
 
-export function Calendar(props) {
+export function Calendar(props: AriaCalendarProps<DateValue>) {
   let { locale } = useLocale()
   let state = useCalendarState({
     ...props,
@@ -13,11 +18,10 @@ export function Calendar(props) {
     createCalendar,
   })
 
-  let ref = useRef()
+  let ref = useRef<HTMLDivElement>(null)
   let { calendarProps, prevButtonProps, nextButtonProps, title } = useCalendar(
     props,
-    state,
-    ref
+    state
   )
 
   return (

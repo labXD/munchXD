@@ -1,3 +1,5 @@
+import { DateValue } from 'react-aria'
+
 export function calcTimeElapsed(previousDate: Date) {
   const currentDate = new Date()
   const elapsedMilliseconds = currentDate.getTime() - previousDate.getTime()
