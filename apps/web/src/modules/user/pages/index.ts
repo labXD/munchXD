@@ -1,2 +1,2 @@
-export * from './myList'
-export * from './addPage'
+export * from './dataPage'
+export * from './mobilePage'

@@ -1,1 +1,1 @@
-export { MyList as default } from '@/user'
+export { MobilePage as default } from '@/user'
