@@ -1,31 +1,52 @@
 import * as React from 'react'
 import {
   createColumnHelper,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
+  getFilteredRowModel,
+  ColumnFiltersState,
 } from '@tanstack/react-table'
 import { Reminder, Restaurant, Visit } from '@prisma/client'
 
-import { getFilteredRowModel } from '@tanstack/react-table'
-
+import {
+  RankingInfo,
+  rankItem,
+  compareItems,
+} from '@tanstack/match-sorter-utils'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { deletePlace } from '~/modules/api/routes'
+import { createPlace, deletePlace, RestaurantOmits } from '@/api/routes'
 
 import { VisitMobile } from './VisitMobile'
 import { ReminderMobile } from './ReminderMobile'
+import { Icon } from './Icon'
+import { BottomNav } from './BottomNav'
+import {
+  AutocompleteComponent,
+  GoogleMapsContainer,
+  PlaceResultProps,
+} from '@/map'
+import { Badge } from './Badge'
+import { SearchInput } from './SearchInput'
+import { AlertDialog, Modal, ModalButton } from './modal'
+import { useOverlayTriggerState } from 'react-stately'
+import { Button } from 'ui-local'
 
 interface DataProps extends Restaurant {
   visits: Visit[]
   reminders: Reminder[]
 }
 export function MobileList() {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'name', desc: false },
-  ])
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [addComp, setAddComp] = React.useState<boolean>(false)
+  const [place, setPlace] = React.useState<PlaceResultProps>()
+  const [globalFilter, setGlobalFilter] = React.useState('')
+  const [data, setData] = React.useState([])
+  const state = useOverlayTriggerState({})
 
   const fetchData = async () => {
     try {
@@ -40,11 +61,19 @@ export function MobileList() {
     }
   }
 
-  const [data, setData] = React.useState([])
+  const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+    const itemRank = rankItem(row.getValue(columnId), value)
+    addMeta({
+      itemRank,
+    })
+
+    return itemRank.passed
+  }
 
   React.useEffect(() => {
     fetchData()
   }, [])
+
   const handleDelete = async (id: number) => {
     try {
       await deletePlace(id)
@@ -53,6 +82,31 @@ export function MobileList() {
       console.error('Error deleting place:', error)
     }
   }
+  const handleCreate = async () => {
+    if (place !== undefined) {
+      const mapDetails: RestaurantOmits = {
+        place_id: place.place_id ?? '',
+        name: place.name ?? '',
+        address: place.formatted_address ?? '',
+        google_map_url: place.url ?? null,
+        lat: place.geometry?.location?.lat() ?? null,
+        lng: place.geometry?.location?.lng() ?? null,
+      }
+      try {
+        await createPlace(mapDetails)
+        state.close()
+        fetchData()
+      } catch (error) {
+        console.error('Error deleting place:', error)
+      }
+    }
+  }
+
+  const closeModal = () => {
+    setPlace(undefined)
+    state.close()
+  }
+
   const columnHelper = createColumnHelper<DataProps>()
 
   const columns = [
@@ -91,14 +145,15 @@ export function MobileList() {
       },
     }),
 
+    columnHelper.accessor('name', {
+      cell: (info) => null,
+    }),
     columnHelper.accessor('address', {
       cell: (info) => <div className="pt-2">{info.getValue()}</div>,
       footer: (props) => props.column.id,
     }),
     columnHelper.accessor((row) => row.visits, {
       id: 'visits',
-      enableColumnFilter: false,
-      enableSorting: false,
       cell: (info) => {
         const data = info.getValue() as Visit[]
         const { id } = info.row.original
@@ -109,8 +164,6 @@ export function MobileList() {
     }),
     columnHelper.accessor((row) => row.reminders, {
       id: 'reminders',
-      enableColumnFilter: false,
-      enableSorting: false,
       cell: (info) => {
         const data = info.getValue() as Reminder[]
         const { id } = info.row.original
@@ -142,55 +195,91 @@ export function MobileList() {
   const table = useReactTable({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    debugTable: true,
-
     state: {
+      globalFilter,
       sorting,
     },
-    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: fuzzyFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    debugTable: true,
+    debugHeaders: true,
+    debugColumns: false,
   })
 
+  function handlePlace(res: PlaceResultProps) {
+    if (res !== undefined) {
+      setPlace(res)
+    } else setPlace(undefined)
+  }
+
   return (
-    <div className="p-2 flex flex-col max-w-full overflow-x-scroll">
-      <main className="py-4 px-4 space-y-4 lg:mx-auto">
-        <div className="flex justify-between items-end">
-          <div className="space-x-4 flex text-sm">
-            <Link
-              href="/map"
-              className="border border-purple-700 rounded bg-purple-700 text-white p-2"
-            >
-              Add Restaurant
-            </Link>
-            <Link
-              href="/list"
-              className="border rounded border-purple-700 text-purple-700 p-2"
-            >
-              List View
-            </Link>
+    <main className={clsx('pb-20 ')}>
+      <Modal state={state}>
+        <AlertDialog title="Add Restaurant" confirmLabel="Add">
+          <div className="px-4">
+            <GoogleMapsContainer>
+              <AutocompleteComponent
+                className="rounded-none"
+                getPlace={(place) => handlePlace(place)}
+              />
+            </GoogleMapsContainer>
           </div>
-          <aside>({table.getRowModel().rows.length})</aside>
-        </div>
+          <div className="px-4 py-4 flex space-x-3 justify-end">
+            <ModalButton
+              className="btn btn-sm btn-outline"
+              onPress={() => closeModal()}
+            >
+              Cancel
+            </ModalButton>
+            <ModalButton className="btn btn-sm" onPress={() => handleCreate()}>
+              Add
+            </ModalButton>
+          </div>
+        </AlertDialog>
+      </Modal>
+
+      <div className={clsx('fixed top-0 inset-0 z-10 h-12')}>
+        <SearchInput
+          value={globalFilter ?? ''}
+          onChange={(value) => setGlobalFilter(String(value))}
+          placeholder="Search..."
+        />
+      </div>
+
+      <section className={clsx('px-2 pt-16', 'space-y-4')}>
         {table.getRowModel().rows.map((row) => {
           return (
-            <div
-              key={row.id}
-              className={clsx(
-                'relative',
-                'p-4 rounded shadow',
-                'bg-white',
-                'text-sm'
-              )}
-            >
+            <div key={row.id} className={clsx('card')}>
               {row.getVisibleCells().map((cell) => {
                 return flexRender(cell.column.columnDef.cell, cell.getContext())
               })}
             </div>
           )
         })}
-      </main>
-    </div>
+      </section>
+      <BottomNav>
+        <ModalButton
+          className="btn btn-sm btn-ghost flex-col"
+          onPress={state.open}
+        >
+          <Icon icon={addComp ? 'close' : 'add'} />
+          <span>New</span>
+        </ModalButton>
+
+        <Link
+          href="/list"
+          className="relative btn btn-sm btn-ghost flex-col space-y-1"
+        >
+          <Icon icon="table_view" />
+          <span>Table</span>
+          <aside className="absolute -top-1 -translate-y-full z-20 right-1/2 translate-x-1/2">
+            <Badge>{table.getRowModel().rows.length}</Badge>
+          </aside>
+        </Link>
+      </BottomNav>
+    </main>
   )
 }

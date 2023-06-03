@@ -2,3 +2,38 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+@layer components {
+  .btn {
+    @apply flex items-center p-2 transition-all;
+    @apply border border-purple-700 bg-purple-700 rounded;
+    @apply text-white;
+    @apply hover:bg-purple-800;
+  }
+
+  .btn-sm {
+    @apply text-sm;
+    @apply px-2 py-1;
+  }
+
+  .btn-sm .material-symbols-rounded {
+    @apply text-lg leading-none;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent border-transparent;
+    @apply text-purple-700;
+    @apply hover:bg-purple-700/20;
+  }
+
+  .btn-outline {
+    @apply bg-transparent;
+    @apply text-purple-700;
+    @apply hover:text-white;
+  }
+
+  .card {
+    @apply relative p-4 rounded shadow bg-white text-sm max-w-screen-md mx-auto;
+    @apply md:max-w-2xl;
+  }
+}
