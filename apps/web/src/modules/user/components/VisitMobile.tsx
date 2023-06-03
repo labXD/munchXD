@@ -164,14 +164,12 @@ export function VisitMobile(props: VisitProps) {
                       </button>
                     ) : (
                       <button>
-                        <span className="material-symbols-rounded text-violet-700">
+                        <span className="material-symbols-rounded">
                           event_available
                         </span>
                       </button>
                     )}
-                    <h3 className="pt-1 text-sm text-gray-700">
-                      {formattedDate}
-                    </h3>
+                    <h3 className="pt-1 text-sm">{formattedDate}</h3>
                   </div>
                 </div>
               )

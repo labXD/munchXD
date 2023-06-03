@@ -36,4 +36,8 @@
     @apply relative p-4 rounded shadow bg-white text-sm max-w-screen-md mx-auto;
     @apply md:max-w-2xl;
   }
+
+  .card-transparent {
+    @apply bg-transparent shadow-none;
+  }
 }

@@ -8,15 +8,10 @@ import {
   SortingState,
   useReactTable,
   getFilteredRowModel,
-  ColumnFiltersState,
 } from '@tanstack/react-table'
 import { Reminder, Restaurant, Visit } from '@prisma/client'
 
-import {
-  RankingInfo,
-  rankItem,
-  compareItems,
-} from '@tanstack/match-sorter-utils'
+import { rankItem } from '@tanstack/match-sorter-utils'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { createPlace, deletePlace, RestaurantOmits } from '@/api/routes'
@@ -34,15 +29,15 @@ import { Badge } from './Badge'
 import { SearchInput } from './SearchInput'
 import { AlertDialog, Modal, ModalButton } from './modal'
 import { useOverlayTriggerState } from 'react-stately'
-import { Button } from 'ui-local'
 
 interface DataProps extends Restaurant {
   visits: Visit[]
   reminders: Reminder[]
 }
 export function MobileList() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [addComp, setAddComp] = React.useState<boolean>(false)
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'name', desc: false },
+  ])
   const [place, setPlace] = React.useState<PlaceResultProps>()
   const [globalFilter, setGlobalFilter] = React.useState('')
   const [data, setData] = React.useState([])
@@ -110,8 +105,14 @@ export function MobileList() {
   const columnHelper = createColumnHelper<DataProps>()
 
   const columns = [
+    columnHelper.accessor('name', {
+      cell: (info) => null,
+      enableSorting: true,
+    }),
+
     columnHelper.display({
       id: 'visit-badge',
+      enableSorting: false,
       cell: ({ row }) => {
         const hasVisit = row.original.visits.length > 0
         const { google_map_url, name } = row.original
@@ -145,15 +146,15 @@ export function MobileList() {
       },
     }),
 
-    columnHelper.accessor('name', {
-      cell: (info) => null,
-    }),
     columnHelper.accessor('address', {
+      enableSorting: false,
       cell: (info) => <div className="pt-2">{info.getValue()}</div>,
       footer: (props) => props.column.id,
     }),
+
     columnHelper.accessor((row) => row.visits, {
       id: 'visits',
+      enableSorting: false,
       cell: (info) => {
         const data = info.getValue() as Visit[]
         const { id } = info.row.original
@@ -164,6 +165,7 @@ export function MobileList() {
     }),
     columnHelper.accessor((row) => row.reminders, {
       id: 'reminders',
+      enableSorting: false,
       cell: (info) => {
         const data = info.getValue() as Reminder[]
         const { id } = info.row.original
@@ -177,6 +179,7 @@ export function MobileList() {
 
     columnHelper.display({
       id: 'delete',
+      enableSorting: false,
       cell: ({ row }) => {
         const { id } = row.original
         return (
@@ -203,6 +206,7 @@ export function MobileList() {
     globalFilterFn: fuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     debugTable: true,
     debugHeaders: true,
@@ -215,8 +219,93 @@ export function MobileList() {
     } else setPlace(undefined)
   }
 
+  const headerGroups = table.getHeaderGroups()
+  const firstHeaderGroup = headerGroups[0].headers[0]
   return (
-    <main className={clsx('pb-20 ')}>
+    <>
+      <main className={clsx('pb-20 ')}>
+        <div className={clsx('fixed top-0 inset-0 z-10 h-12')}>
+          <SearchInput
+            value={globalFilter ?? ''}
+            onChange={(value) => setGlobalFilter(String(value))}
+            placeholder="Search..."
+          />
+        </div>
+        <section className="px-2 pt-16 card card-transparent">
+          <button
+            className="relative"
+            onClick={firstHeaderGroup.column.getToggleSortingHandler()}
+          >
+            <Badge className="transition-all hover:bg-gray-600/100">
+              <span>sort</span>
+              {{
+                asc: (
+                  <span
+                    className={clsx(
+                      'absolute -right-1 top-1/2 -translate-y-1/2 translate-x-full',
+                      'material-symbols-rounded text-sm leading-0 text-gray-500'
+                    )}
+                  >
+                    sort
+                  </span>
+                ),
+                desc: (
+                  <span
+                    className={clsx(
+                      'absolute -right-1 top-1/2 -translate-y-1/2 translate-x-full',
+                      'material-symbols-rounded text-sm leading-0 text-gray-500',
+                      '-scale-y-100'
+                    )}
+                  >
+                    sort
+                  </span>
+                ),
+              }[firstHeaderGroup.column.getIsSorted() as string] ?? null}
+            </Badge>
+          </button>
+        </section>
+        <section className={clsx('px-2', 'space-y-4')}>
+          {table.getRowModel().rows.map((row) => {
+            return (
+              <div key={row.id} className={clsx('card')}>
+                {row.getVisibleCells().map((cell) => {
+                  return flexRender(
+                    cell.column.columnDef.cell,
+                    cell.getContext()
+                  )
+                })}
+              </div>
+            )
+          })}
+        </section>
+        <BottomNav>
+          <ModalButton
+            className="btn btn-sm btn-ghost flex-col"
+            onPress={state.open}
+          >
+            <Icon icon={state.isOpen ? 'close' : 'add'} />
+            <span>New</span>
+          </ModalButton>
+
+          <Link
+            href="/map"
+            className="relative btn btn-sm btn-ghost flex-col space-y-1"
+          >
+            <Icon icon="location_on" />
+            <span>Map</span>
+          </Link>
+          <Link
+            href="/list"
+            className="relative btn btn-sm btn-ghost flex-col space-y-1"
+          >
+            <Icon icon="table_view" />
+            <span>Table</span>
+            <aside className="absolute -top-1 -translate-y-full z-20 right-1/2 translate-x-1/2">
+              <Badge>{table.getRowModel().rows.length}</Badge>
+            </aside>
+          </Link>
+        </BottomNav>
+      </main>
       <Modal state={state}>
         <AlertDialog title="Add Restaurant" confirmLabel="Add">
           <div className="px-4">
@@ -240,46 +329,6 @@ export function MobileList() {
           </div>
         </AlertDialog>
       </Modal>
-
-      <div className={clsx('fixed top-0 inset-0 z-10 h-12')}>
-        <SearchInput
-          value={globalFilter ?? ''}
-          onChange={(value) => setGlobalFilter(String(value))}
-          placeholder="Search..."
-        />
-      </div>
-
-      <section className={clsx('px-2 pt-16', 'space-y-4')}>
-        {table.getRowModel().rows.map((row) => {
-          return (
-            <div key={row.id} className={clsx('card')}>
-              {row.getVisibleCells().map((cell) => {
-                return flexRender(cell.column.columnDef.cell, cell.getContext())
-              })}
-            </div>
-          )
-        })}
-      </section>
-      <BottomNav>
-        <ModalButton
-          className="btn btn-sm btn-ghost flex-col"
-          onPress={state.open}
-        >
-          <Icon icon={addComp ? 'close' : 'add'} />
-          <span>New</span>
-        </ModalButton>
-
-        <Link
-          href="/list"
-          className="relative btn btn-sm btn-ghost flex-col space-y-1"
-        >
-          <Icon icon="table_view" />
-          <span>Table</span>
-          <aside className="absolute -top-1 -translate-y-full z-20 right-1/2 translate-x-1/2">
-            <Badge>{table.getRowModel().rows.length}</Badge>
-          </aside>
-        </Link>
-      </BottomNav>
-    </main>
+    </>
   )
 }

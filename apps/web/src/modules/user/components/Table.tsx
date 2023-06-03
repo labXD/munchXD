@@ -45,6 +45,7 @@ export function Table() {
   React.useEffect(() => {
     fetchData()
   }, [])
+
   const handleDelete = async (id: number) => {
     try {
       await deletePlace(id)
@@ -53,12 +54,14 @@ export function Table() {
       console.error('Error deleting place:', error)
     }
   }
+
   const columnHelper = createColumnHelper<DataProps>()
 
   const columns = [
     columnHelper.accessor('name', {
       cell: (info) => <span>{info.getValue()}</span>,
       footer: (props) => props.column.id,
+      enableSorting: true,
     }),
     columnHelper.accessor('address', {
       cell: (info) => info.getValue(),
@@ -153,7 +156,7 @@ export function Table() {
           href="/"
           className="border-2 rounded border-purple-700 text-purple-700 p-2"
         >
-          Table View
+          List View
         </Link>
       </div>
       <table className="w-full">
