@@ -156,13 +156,17 @@ export function ReminderMobile(props: ReminderProps) {
                 .getFullYear()
                 .toString()
                 .slice(-2)}`
+              const isPastDate = dateVisited < new Date() // Check if date is in the past
 
               return (
                 <div key={rem.id} className={clsx('pl-4 pt-2 first:pl-0')}>
                   <div
                     className={clsx(
                       'flex flex-col items-center',
-                      'border border-transparent rounded p-2'
+                      'border border-transparent rounded p-2',
+                      {
+                        'text-red-700': isPastDate,
+                      }
                     )}
                   >
                     {edit ? (
@@ -173,14 +177,16 @@ export function ReminderMobile(props: ReminderProps) {
                       </button>
                     ) : (
                       <button>
-                        <span className="material-symbols-rounded text-orange-700">
-                          event_available
+                        <span
+                          className={clsx('material-symbols-rounded', {
+                            fill: isPastDate,
+                          })}
+                        >
+                          {isPastDate ? 'event_busy' : 'event'}
                         </span>
                       </button>
                     )}
-                    <h3 className="pt-1 text-sm text-gray-700">
-                      {formattedDate}
-                    </h3>
+                    <h3 className="pt-1 text-sm">{formattedDate}</h3>
                   </div>
                 </div>
               )

@@ -1,15 +1,11 @@
 {
   "name": "munch-xd-monorepo",
+  "private": true,
   "author": {
     "name": "labXD",
     "email": "engineering@labxd.com",
     "url": "https://labxd.com"
   },
-  "contributors": [
-    "Jimmy Nguyen <jimmy@labxd.com> (https://github.com/jimmynxd)",
-    "Walee Ahmed <walee@labxd.com> (https://github.com/wallexd)"
-  ],
-  "private": true,
   "scripts": {
     "bootstrap": "pnpm install && husky install",
     "build": "turbo run build",
@@ -24,17 +20,21 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
-    "eslint": "^8.40.0",
+    "eslint": "^8.41.0",
     "eslint-config-local": "workspace:*",
     "git-commit-msg-linter": "5.0.4",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
     "prettier-config-local": "workspace:*",
-    "syncpack": "^9.8.6",
+    "syncpack": "^10.1.0",
     "tsconfig-local": "workspace:*",
-    "turbo": "^1.9.3"
+    "turbo": "^1.10.1"
   },
+  "contributors": [
+    "Jimmy Nguyen <jimmy@labxd.com> (https://github.com/jimmynxd)",
+    "Walee Ahmed <walee@labxd.com> (https://github.com/wallexd)"
+  ],
   "eslintConfig": {
     "root": true,
     "extends": [
@@ -51,8 +51,5 @@
   },
   "packageManager": "pnpm@8.5.1",
   "prettier": "prettier-config-local",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/labXD/munchXD.git"
-  }
+  "repository": "labXD/munchXD.git"
 }

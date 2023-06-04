@@ -37,13 +37,6 @@ module.exports = {
       pinVersion: '^5.0.4',
     },
     {
-      label: 'eslint',
-      packages: ['**'],
-      dependencies: ['eslint'],
-      dependencyTypes: ['dev'],
-      pinVersion: '^8.40.0',
-    },
-    {
       label: 'types/node',
       packages: ['**'],
       dependencies: ['@types/node'],
