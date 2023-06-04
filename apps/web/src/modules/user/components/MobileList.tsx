@@ -295,6 +295,13 @@ export function MobileList() {
             <span>Map</span>
           </Link>
           <Link
+            href="/calendar"
+            className="relative btn btn-sm btn-ghost flex-col space-y-1"
+          >
+            <Icon icon="event" />
+            <span>Calendar</span>
+          </Link>
+          <Link
             href="/list"
             className="relative btn btn-sm btn-ghost flex-col space-y-1"
           >
