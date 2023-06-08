@@ -47,3 +47,13 @@ restaurantId Int
 
 @@index([restaurantId])
 }
+
+generator trpc {
+  provider          = "prisma-trpc-generator"
+  output             = "../src/modules/server/generated"
+  withZod           = true
+  withMiddleware    = false
+  withShield        = false
+  contextPath       = "../src/modules/server/context"
+  isGenerateInclude = true
+}

@@ -1,6 +1,7 @@
 {
   "extends": "tsconfig-local/next.json",
   "compilerOptions": {
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"],

@@ -41,3 +41,8 @@
 - element behavior
 - element styles
 - children styles
+
+## Routing
+
+- prism/schema.prisma holds the modals and generates the types
+  - also has a generator for procedures with trps
