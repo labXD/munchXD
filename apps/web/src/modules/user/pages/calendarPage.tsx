@@ -10,12 +10,15 @@ import { trpc } from '@/server/trpc'
 export function CalendarPage() {
   const localizer = momentLocalizer(moment)
 
-  const getVisits = trpc.visit.findManyVisit.useQuery({
+  const [data, { refetch }] = trpc.visit.findManyVisit.useSuspenseQuery({
     include: {
       restaurant: true,
     },
   })
-  const events = getVisits.data?.map((item) => {
+
+  console.log('data', data)
+
+  const events = data.map((item) => {
     return {
       id: item.id,
       // @ts-ignore

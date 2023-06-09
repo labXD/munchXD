@@ -29,32 +29,35 @@ import { Badge } from './Badge'
 import { SearchInput } from './SearchInput'
 import { AlertDialog, Modal, ModalButton } from './modal'
 import { useOverlayTriggerState } from 'react-stately'
+import { trpc } from '@/server/trpc'
+import { TRPCClientError } from '@trpc/client'
 
 interface DataProps extends Restaurant {
   visits: Visit[]
   reminders: Reminder[]
 }
 export function MobileList() {
+  const { data, refetch, isLoading, error } =
+    trpc.restaurant.findManyRestaurant.useQuery({
+      include: {
+        visits: true,
+        reminders: true,
+      },
+    })
+
+  const deleteRestaurantMutation =
+    trpc.restaurant.deleteOneRestaurant.useMutation()
+
+  const createRestaurantMutation =
+    trpc.restaurant.createOneRestaurant.useMutation()
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'name', desc: false },
   ])
+
   const [place, setPlace] = React.useState<PlaceResultProps>()
   const [globalFilter, setGlobalFilter] = React.useState('')
-  const [data, setData] = React.useState([])
   const state = useOverlayTriggerState({})
-
-  const fetchData = async () => {
-    try {
-      const response = await fetch('/api/restaurants', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
-      const data = await response.json()
-      setData(data.data)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
-  }
 
   const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
     const itemRank = rankItem(row.getValue(columnId), value)
@@ -65,19 +68,35 @@ export function MobileList() {
     return itemRank.passed
   }
 
-  React.useEffect(() => {
-    fetchData()
-  }, [])
-
   const handleDelete = async (id: number) => {
     try {
-      await deletePlace(id)
-      fetchData()
+      await deleteRestaurantMutation.mutateAsync({
+        where: {
+          id,
+        },
+        include: {
+          visits: true,
+          reminders: true,
+        },
+      })
+
+      // If the deletion is successful, you can perform any necessary actions
+      // such as showing a success message or navigating to a different page.
+      refetch()
     } catch (error) {
-      console.error('Error deleting place:', error)
+      // Handle the error here
+      if (error instanceof TRPCClientError) {
+        console.log('error\n', error)
+        console.error(
+          'Cannot delete the restaurant. There are associated visits.'
+        )
+      } else {
+        // Handle other types of errors
+        console.error('An error occurred while deleting the restaurant.', error)
+      }
     }
   }
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (place !== undefined) {
       const mapDetails: RestaurantOmits = {
         place_id: place.place_id ?? '',
@@ -87,13 +106,16 @@ export function MobileList() {
         lat: place.geometry?.location?.lat() ?? null,
         lng: place.geometry?.location?.lng() ?? null,
       }
-      try {
-        await createPlace(mapDetails)
-        state.close()
-        fetchData()
-      } catch (error) {
-        console.error('Error deleting place:', error)
-      }
+      createRestaurantMutation.mutate(
+        {
+          data: mapDetails,
+        },
+        {
+          onSuccess: () => {
+            refetch()
+          },
+        }
+      )
     }
   }
 
@@ -158,7 +180,7 @@ export function MobileList() {
       cell: (info) => {
         const data = info.getValue() as Visit[]
         const { id } = info.row.original
-        return <VisitMobile id={id} data={data} refetch={() => fetchData()} />
+        return <VisitMobile id={id} data={data} refetch={() => refetch()} />
       },
       header: () => <span>Visited</span>,
       footer: (info) => info.column.id,
@@ -169,9 +191,7 @@ export function MobileList() {
       cell: (info) => {
         const data = info.getValue() as Reminder[]
         const { id } = info.row.original
-        return (
-          <ReminderMobile id={id} data={data} refetch={() => fetchData()} />
-        )
+        return <ReminderMobile id={id} data={data} refetch={() => refetch()} />
       },
       header: () => <span>Visited</span>,
       footer: (info) => info.column.id,
@@ -184,7 +204,7 @@ export function MobileList() {
         const { id } = row.original
         return (
           <div className={clsx('absolute top-4 right-4')}>
-            <button onClick={() => handleDelete(id)}>
+            <button onClick={async () => handleDelete(id)}>
               <span className="material-symbols-rounded text-red-700">
                 delete
               </span>
@@ -196,7 +216,8 @@ export function MobileList() {
   ]
 
   const table = useReactTable({
-    data,
+    // @ts-ignore
+    data: data,
     columns,
     state: {
       globalFilter,
@@ -221,6 +242,9 @@ export function MobileList() {
 
   const headerGroups = table.getHeaderGroups()
   const firstHeaderGroup = headerGroups[0].headers[0]
+
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>{error.message}</div>
   return (
     <>
       <main className={clsx('pb-20 ')}>
